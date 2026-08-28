@@ -2527,4 +2527,13 @@ window.addEventListener(
     }
 );
 
-})();
+window.addEventListener(
+    "beforeunload",
+    () => {
+        stopCamera();
+
+        if (finalURL) {
+            URL.revokeObjectURL(finalURL);
+        }
+    }
+);
