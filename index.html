@@ -1,430 +1,251 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    <title>LoveBox Photobooth</title>
 
-    <title>Our Little Photobox 💗</title>
-
-    <link
-        rel="stylesheet"
-        href="style.css">
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
 <div class="app">
 
+    <header class="hero">
+        <div class="heart">♡</div>
 
-    <!-- HEADER -->
+        <h1>LoveBox</h1>
 
-    <header>
-
-        <div class="logo">
-            ♡
-        </div>
-
-        <h1>
-            Our Little Photobox
-        </h1>
-
-        <p>
-            Capture your little moments ✨
-        </p>
-
+        <p>Make a little memory together ✨</p>
     </header>
 
 
+    <!-- SETTINGS -->
 
-    <!-- CUSTOMIZE -->
+    <section class="panel">
 
-    <section class="card">
-
-        <h2>
-            🎀 Customize
-        </h2>
-
+        <h2>🎀 Customize</h2>
 
         <div class="form-grid">
 
-
-            <div class="input-group">
-
-                <label>
-                    Nama 1
-                </label>
-
-                <input
-                    id="name1"
-                    type="text"
-                    placeholder="Nama kamu">
-
+            <div class="field">
+                <label>Nama kamu</label>
+                <input id="name1" type="text" placeholder="Contoh: Syahid">
             </div>
 
-
-            <div class="input-group">
-
-                <label>
-                    Nama 2
-                </label>
-
-                <input
-                    id="name2"
-                    type="text"
-                    placeholder="Nama dia">
-
+            <div class="field">
+                <label>Nama dia</label>
+                <input id="name2" type="text" placeholder="Contoh: Napis">
             </div>
 
-
-            <div class="input-group">
-
-                <label>
-                    Judul
-                </label>
-
-                <input
-                    id="title"
-                    type="text"
-                    value="Our Little Moments">
-
+            <div class="field">
+                <label>Judul</label>
+                <input id="title" type="text" value="Our Little Moments">
             </div>
 
-
-            <div class="input-group">
-
-                <label>
-                    Tanggal
-                </label>
-
-                <input
-                    id="date"
-                    type="date">
-
+            <div class="field">
+                <label>Tanggal</label>
+                <input id="date" type="date">
             </div>
 
-
-            <div class="input-group full">
-
-                <label>
-                    Pesan
-                </label>
-
+            <div class="field full">
+                <label>Pesan</label>
                 <input
                     id="message"
                     type="text"
-                    value="A little moment with you ❤️">
-
+                    value="Every moment with you is special ♡">
             </div>
 
         </div>
 
 
+        <div class="settings-grid">
 
-        <!-- OPTIONS -->
-
-        <div class="options">
-
-
-            <div>
-
-                <label>
-                    Layout Foto
-                </label>
+            <div class="field">
+                <label>Layout</label>
 
                 <select id="layout">
 
-                    <option value="1x1">
-                        1 × 1 — 1 Foto
-                    </option>
-
-                    <option value="2x1">
-                        2 × 1 — 2 Foto
-                    </option>
-
-                    <option value="2x2">
-                        2 × 2 — 4 Foto
-                    </option>
-
-                    <option value="3x2">
-                        3 × 2 — 6 Foto
-                    </option>
-
-                    <option value="3x3">
-                        3 × 3 — 9 Foto
-                    </option>
-
-                    <option value="4x2">
-                        4 × 2 — 8 Foto
-                    </option>
-
-                    <option value="4x3">
-                        4 × 3 — 12 Foto
-                    </option>
-
-                    <option value="4x4">
-                        4 × 4 — 16 Foto
-                    </option>
-
-                    <option value="5x2">
-                        5 × 2 — 10 Foto
-                    </option>
-
-                    <option value="5x3">
-                        5 × 3 — 15 Foto
-                    </option>
-
-                    <option value="6x2">
-                        6 × 2 — 12 Foto
-                    </option>
-
-                    <option value="6x3">
-                        6 × 3 — 18 Foto
-                    </option>
+                    <option value="1x1">1 × 1 — 1 foto</option>
+                    <option value="2x1">2 × 1 — 2 foto</option>
+                    <option value="2x2">2 × 2 — 4 foto</option>
+                    <option value="3x2">3 × 2 — 6 foto</option>
+                    <option value="3x3">3 × 3 — 9 foto</option>
+                    <option value="4x2">4 × 2 — 8 foto</option>
+                    <option value="4x3">4 × 3 — 12 foto</option>
+                    <option value="4x4">4 × 4 — 16 foto</option>
+                    <option value="5x2">5 × 2 — 10 foto</option>
+                    <option value="5x3">5 × 3 — 15 foto</option>
+                    <option value="6x2">6 × 2 — 12 foto</option>
+                    <option value="6x3">6 × 3 — 18 foto</option>
 
                 </select>
-
             </div>
 
 
-
-            <div>
-
-                <label>
-                    Frame
-                </label>
+            <div class="field">
+                <label>Frame</label>
 
                 <select id="frame">
 
-                    <option value="pink">
-                        💗 Pink Love
-                    </option>
-
-                    <option value="white">
-                        🤍 Clean White
-                    </option>
-
-                    <option value="purple">
-                        💜 Purple Dream
-                    </option>
-
-                    <option value="black">
-                        🖤 Elegant Black
-                    </option>
-
-                    <option value="blue">
-                        💙 Baby Blue
-                    </option>
-
-                    <option value="red">
-                        ❤️ Red Love
-                    </option>
+                    <option value="pink">💗 Pink Love</option>
+                    <option value="white">🤍 Clean White</option>
+                    <option value="purple">💜 Purple Dream</option>
+                    <option value="blue">💙 Baby Blue</option>
+                    <option value="red">❤️ Red Love</option>
+                    <option value="black">🖤 Elegant Black</option>
 
                 </select>
-
             </div>
 
 
-
-            <div>
-
-                <label>
-                    Filter
-                </label>
+            <div class="field">
+                <label>Filter</label>
 
                 <select id="filter">
 
-                    <option value="none">
-                        ✨ Normal
-                    </option>
-
-                    <option value="soft">
-                        🌸 Soft
-                    </option>
-
-                    <option value="vintage">
-                        🤎 Vintage
-                    </option>
-
-                    <option value="bw">
-                        🖤 B&W
-                    </option>
-
-                    <option value="vivid">
-                        💫 Vivid
-                    </option>
+                    <option value="normal">✨ Normal</option>
+                    <option value="soft">🌸 Soft</option>
+                    <option value="vintage">🤎 Vintage</option>
+                    <option value="bw">🖤 B&W</option>
+                    <option value="vivid">💫 Vivid</option>
 
                 </select>
-
             </div>
 
         </div>
 
     </section>
-
 
 
     <!-- CAMERA -->
 
-    <section class="card">
+    <section class="panel">
 
+        <h2>📸 Camera</h2>
 
-        <div class="camera-container">
+        <div class="camera-box">
 
             <video
                 id="video"
                 autoplay
+                muted
                 playsinline>
             </video>
 
-            <div id="flash"></div>
+            <div class="camera-overlay">
 
-            <div class="camera-label">
-                CAMERA
+                <span id="cameraStatus">
+                    Camera belum aktif
+                </span>
+
             </div>
 
+            <div id="flash"></div>
+
         </div>
 
 
-
-        <div class="buttons">
+        <div class="camera-actions">
 
             <button
-                id="startCamera"
-                class="btn primary">
+                id="cameraButton"
+                class="button primary">
 
-                📷 Start Camera
+                📷 Aktifkan Kamera
 
             </button>
 
-
             <button
-                id="startPhotobox"
-                class="btn capture">
+                id="startButton"
+                class="button capture"
+                disabled>
 
-                💗 Start Photobox
-
-            </button>
-
-
-            <button
-                id="reset"
-                class="btn secondary">
-
-                ↻ Reset
+                💗 Mulai Photobox
 
             </button>
 
         </div>
 
 
-        <div id="status">
-
-            Isi data lalu nyalakan kamera ✨
-
-        </div>
+        <p id="status" class="status">
+            Izinkan akses kamera untuk memulai.
+        </p>
 
     </section>
 
 
-
     <!-- COUNTDOWN -->
 
-    <div
-        id="countdown"
-        class="countdown">
+    <div id="countdown" class="countdown">
 
-        <span>
-            3
-        </span>
+        <div id="countdownNumber">3</div>
 
     </div>
-
 
 
     <!-- RESULT -->
 
     <section
-        id="result"
-        class="result">
+        id="resultSection"
+        class="result-section">
 
-        <h2>
-            ✨ Your Photobox ✨
-        </h2>
-
+        <h2>✨ Your Memory ✨</h2>
 
         <div
-            id="photoFrame"
-            class="photo-frame pink">
+            id="resultFrame"
+            class="result-frame pink">
 
 
-            <div class="decoration top">
-                ♥
-            </div>
-
-
-            <div class="result-header">
+            <div class="result-top">
 
                 <h3 id="resultTitle">
                     Our Little Moments
                 </h3>
 
                 <p id="resultNames">
-                    Nama 1 × Nama 2
+                    You × Me
                 </p>
 
             </div>
 
 
             <div
-                id="photoGrid"
-                class="photo-grid">
+                id="resultGrid"
+                class="result-grid">
             </div>
 
 
-            <div class="result-footer">
+            <div class="result-bottom">
 
                 <p id="resultMessage">
-                    A little moment with you ❤️
+                    Every moment with you is special ♡
                 </p>
 
-                <small id="resultDate">
-                    28 • 08 • 2026
-                </small>
+                <small id="resultDate"></small>
 
-            </div>
-
-
-            <div class="decoration bottom">
-                ♥
             </div>
 
         </div>
 
 
-
-        <div class="result-buttons">
+        <div class="result-actions">
 
             <button
-                id="download"
-                class="btn download">
+                id="downloadButton"
+                class="button download">
 
-                💾 Download
+                💾 Simpan JPG
 
             </button>
 
-
             <button
-                id="retake"
-                class="btn secondary">
+                id="retakeButton"
+                class="button secondary">
 
-                📸 Take Again
+                📸 Foto Lagi
 
             </button>
 
@@ -433,11 +254,9 @@
     </section>
 
 
-
     <footer>
-        Made with ♡ for someone special
+        Made with ♡
     </footer>
-
 
 </div>
 
@@ -445,5 +264,4 @@
 <script src="script.js"></script>
 
 </body>
-
 </html>
