@@ -1,103 +1,182 @@
-let stream = null;
+"use strict";
 
-const video = document.getElementById("video");
-const statusText = document.getElementById("status");
-const countdown = document.getElementById("countdown");
-const flash = document.getElementById("flash");
+
+/* =========================================
+   ELEMENTS
+========================================= */
+
+const video =
+    document.getElementById("video");
+
+const cameraButton =
+    document.getElementById("cameraButton");
+
+const startButton =
+    document.getElementById("startButton");
+
+const statusText =
+    document.getElementById("status");
+
+const cameraStatus =
+    document.getElementById("cameraStatus");
+
+const countdown =
+    document.getElementById("countdown");
+
+const countdownNumber =
+    document.getElementById("countdownNumber");
+
+const flash =
+    document.getElementById("flash");
+
+const resultSection =
+    document.getElementById("resultSection");
+
+const resultGrid =
+    document.getElementById("resultGrid");
+
+const resultFrame =
+    document.getElementById("resultFrame");
+
+const downloadButton =
+    document.getElementById("downloadButton");
+
+const retakeButton =
+    document.getElementById("retakeButton");
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let stream = null;
 
 let photos = [];
 
-const canvas = document.createElement("canvas");
+let isTakingPhotos = false;
 
 
-// ================================
-// DATE
-// ================================
+/* =========================================
+   DEFAULT DATE
+========================================= */
 
-const today = new Date();
+const now = new Date();
+
+const yyyy =
+    now.getFullYear();
+
+const mm =
+    String(now.getMonth() + 1)
+        .padStart(2, "0");
+
+const dd =
+    String(now.getDate())
+        .padStart(2, "0");
 
 document.getElementById("date").value =
-    today.toISOString().split("T")[0];
+    `${yyyy}-${mm}-${dd}`;
 
 
-// ================================
-// START CAMERA
-// ================================
+/* =========================================
+   CAMERA
+========================================= */
 
-document
-    .getElementById("startCamera")
-    .addEventListener("click", startCamera);
+cameraButton.addEventListener(
+    "click",
+    startCamera
+);
 
 
 async function startCamera() {
 
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
+
+        setStatus(
+            "❌ Browser tidak mendukung akses kamera."
+        );
+
+        return;
+
+    }
+
+
     try {
 
-        statusText.innerText =
-            "⏳ Membuka kamera...";
+        setStatus(
+            "⏳ Meminta izin kamera..."
+        );
 
-
-        // Cek browser support
-
-        if (!navigator.mediaDevices ||
-            !navigator.mediaDevices.getUserMedia) {
-
-            statusText.innerText =
-                "❌ Browser ini tidak mendukung kamera.";
-
-            return;
-        }
-
-
-        // Stop kamera lama
 
         if (stream) {
 
-            stream.getTracks().forEach(
-                track => track.stop()
-            );
+            stream
+                .getTracks()
+                .forEach(track =>
+                    track.stop()
+                );
 
         }
 
 
-        // Minta akses kamera
-
         stream =
-            await navigator.mediaDevices.getUserMedia({
+            await navigator.mediaDevices
+                .getUserMedia({
 
-                video: {
-                    facingMode: "user",
-                    width: {
-                        ideal: 1280
+                    video: {
+                        facingMode: "user",
+                        width: {
+                            ideal: 1280
+                        },
+                        height: {
+                            ideal: 720
+                        }
                     },
-                    height: {
-                        ideal: 720
-                    }
-                },
 
-                audio: false
+                    audio: false
 
-            });
+                });
 
 
-        // Masukkan stream ke video
-
-        video.srcObject = stream;
+        video.srcObject =
+            stream;
 
 
         await video.play();
 
 
-        statusText.innerText =
-            "📷 Kamera berhasil dinyalakan!";
+        cameraStatus.textContent =
+            "● CAMERA READY";
+
+
+        cameraButton.textContent =
+            "✓ Kamera Aktif";
+
+
+        startButton.disabled =
+            false;
+
+
+        setStatus(
+            "📸 Kamera siap. Pilih layout lalu mulai!"
+        );
 
 
     } catch (error) {
 
-        console.error(
-            "Camera Error:",
-            error
-        );
+        console.error(error);
+
+
+        stream = null;
+
+        startButton.disabled =
+            true;
+
+
+        let message =
+            "❌ Kamera tidak dapat digunakan.";
 
 
         if (
@@ -105,7 +184,7 @@ async function startCamera() {
             "NotAllowedError"
         ) {
 
-            statusText.innerText =
+            message =
                 "❌ Izin kamera ditolak. Izinkan kamera di browser.";
 
         }
@@ -115,7 +194,7 @@ async function startCamera() {
             "NotFoundError"
         ) {
 
-            statusText.innerText =
+            message =
                 "❌ Kamera tidak ditemukan.";
 
         }
@@ -125,42 +204,178 @@ async function startCamera() {
             "NotReadableError"
         ) {
 
-            statusText.innerText =
-                "❌ Kamera sedang digunakan aplikasi lain.";
+            message =
+                "❌ Kamera sedang dipakai aplikasi lain.";
 
         }
 
-        else {
+        else if (
+            error.name ===
+            "SecurityError"
+        ) {
 
-            statusText.innerText =
-                "❌ Kamera gagal dibuka: " +
-                error.name;
+            message =
+                "❌ Browser memblokir akses kamera.";
 
         }
+
+
+        setStatus(message);
 
     }
 
 }
 
 
-// ================================
-// COUNTDOWN
-// ================================
+/* =========================================
+   START PHOTOBOX
+========================================= */
 
-function runCountdown() {
+startButton.addEventListener(
+    "click",
+    startPhotobox
+);
+
+
+async function startPhotobox() {
+
+    if (isTakingPhotos)
+        return;
+
+
+    if (!stream) {
+
+        await startCamera();
+
+        if (!stream)
+            return;
+
+    }
+
+
+    if (
+        video.readyState <
+        HTMLMediaElement.HAVE_CURRENT_DATA
+    ) {
+
+        setStatus(
+            "⏳ Tunggu kamera siap..."
+        );
+
+        await sleep(1000);
+
+    }
+
+
+    const layout =
+        document.getElementById(
+            "layout"
+        ).value;
+
+
+    const [columns, rows] =
+        layout
+            .split("x")
+            .map(Number);
+
+
+    const total =
+        columns * rows;
+
+
+    photos = [];
+
+    isTakingPhotos = true;
+
+    startButton.disabled = true;
+
+    cameraButton.disabled = true;
+
+
+    resultSection.style.display =
+        "none";
+
+
+    setStatus(
+        `📸 Bersiap mengambil ${total} foto...`
+    );
+
+
+    await sleep(700);
+
+
+    try {
+
+        for (
+            let i = 0;
+            i < total;
+            i++
+        ) {
+
+            setStatus(
+                `📸 Foto ${i + 1} dari ${total}`
+            );
+
+
+            await countdownTimer();
+
+
+            const photo =
+                takePhoto();
+
+
+            photos.push(photo);
+
+
+            await sleep(600);
+
+        }
+
+
+        buildResult();
+
+
+        setStatus(
+            "🎉 Selesai! Hasil fotomu sudah siap."
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+            "❌ Terjadi masalah saat mengambil foto."
+        );
+
+    }
+
+
+    isTakingPhotos = false;
+
+    startButton.disabled = false;
+
+    cameraButton.disabled = false;
+
+}
+
+
+/* =========================================
+   COUNTDOWN
+========================================= */
+
+function countdownTimer() {
 
     return new Promise(resolve => {
-
-        let number = 3;
-
 
         countdown.style.display =
             "flex";
 
 
-        countdown
-            .querySelector("span")
-            .innerText = number;
+        let number = 3;
+
+
+        showCountdown(number);
 
 
         const timer =
@@ -178,14 +393,9 @@ function runCountdown() {
 
                     resolve();
 
-                }
+                } else {
 
-                else {
-
-                    countdown
-                        .querySelector("span")
-                        .innerText =
-                        number;
+                    showCountdown(number);
 
                 }
 
@@ -196,45 +406,46 @@ function runCountdown() {
 }
 
 
-// ================================
-// FILTER
-// ================================
+function showCountdown(number) {
 
-function getFilter() {
-
-    const filter =
-        document.getElementById(
-            "filter"
-        ).value;
+    countdownNumber.textContent =
+        number;
 
 
-    switch (filter) {
+    countdownNumber.style.animation =
+        "none";
 
-        case "soft":
-            return "brightness(1.1) saturate(1.15)";
 
-        case "vintage":
-            return "sepia(.65) contrast(1.05)";
+    void countdownNumber.offsetWidth;
 
-        case "bw":
-            return "grayscale(1)";
 
-        case "vivid":
-            return "contrast(1.15) saturate(1.4)";
-
-        default:
-            return "none";
-
-    }
+    countdownNumber.style.animation =
+        "pop .7s ease";
 
 }
 
 
-// ================================
-// TAKE PHOTO
-// ================================
+/* =========================================
+   TAKE PHOTO
+========================================= */
 
 function takePhoto() {
+
+    if (
+        !video.videoWidth ||
+        !video.videoHeight
+    ) {
+
+        throw new Error(
+            "Video belum siap."
+        );
+
+    }
+
+
+    const canvas =
+        document.createElement("canvas");
+
 
     canvas.width =
         video.videoWidth;
@@ -247,10 +458,12 @@ function takePhoto() {
         canvas.getContext("2d");
 
 
+    /*
+       Mirror kamera agar hasil
+       sesuai tampilan selfie.
+    */
+
     ctx.save();
-
-
-    // Mirror kamera depan
 
     ctx.translate(
         canvas.width,
@@ -281,51 +494,60 @@ function takePhoto() {
 
     // Flash
 
-    flash.classList.remove(
-        "flash-active"
-    );
+    flash.classList.remove("flash");
 
     void flash.offsetWidth;
 
-    flash.classList.add(
-        "flash-active"
-    );
+    flash.classList.add("flash");
 
 
     return canvas.toDataURL(
         "image/jpeg",
-        0.92
+        0.94
     );
 
 }
 
 
-// ================================
-// START PHOTOBOX
-// ================================
+/* =========================================
+   FILTER
+========================================= */
 
-document
-    .getElementById("startPhotobox")
-    .addEventListener(
-        "click",
-        startPhotobox
-    );
+function getFilter() {
+
+    const value =
+        document.getElementById(
+            "filter"
+        ).value;
 
 
-async function startPhotobox() {
+    switch (value) {
 
-    // Kamera belum aktif
+        case "soft":
+            return "brightness(1.08) saturate(1.12)";
 
-    if (!stream) {
+        case "vintage":
+            return "sepia(.55) contrast(1.04)";
 
-        await startCamera();
+        case "bw":
+            return "grayscale(1)";
 
-        if (!stream) {
-            return;
-        }
+        case "vivid":
+            return "contrast(1.12) saturate(1.3)";
+
+        default:
+            return "none";
 
     }
 
+}
+
+
+/* =========================================
+   BUILD RESULT
+========================================= */
+
+function buildResult() {
 
     const layout =
         document.getElementById(
@@ -339,87 +561,15 @@ async function startPhotobox() {
             .map(Number);
 
 
-    const total =
-        columns * rows;
+    resultGrid.innerHTML = "";
 
 
-    photos = [];
-
-
-    document
-        .getElementById("result")
-        .style.display =
-        "none";
-
-
-    statusText.innerText =
-        `📸 Siap mengambil ${total} foto...`;
-
-
-    await sleep(1000);
-
-
-    for (
-        let i = 0;
-        i < total;
-        i++
-    ) {
-
-        statusText.innerText =
-            `📸 Foto ${i + 1} dari ${total}`;
-
-
-        await runCountdown();
-
-
-        photos.push(
-            takePhoto()
-        );
-
-
-        await sleep(500);
-
-    }
-
-
-    createResult();
-
-}
-
-
-// ================================
-// RESULT
-// ================================
-
-function createResult() {
-
-    const layout =
-        document.getElementById(
-            "layout"
-        ).value;
-
-
-    const [columns, rows] =
-        layout
-            .split("x")
-            .map(Number);
-
-
-    const grid =
-        document.getElementById(
-            "photoGrid"
-        );
-
-
-    grid.style.gridTemplateColumns =
+    resultGrid.style.gridTemplateColumns =
         `repeat(${columns}, 1fr)`;
 
 
-    grid.style.gridTemplateRows =
+    resultGrid.style.gridTemplateRows =
         `repeat(${rows}, 1fr)`;
-
-
-    grid.innerHTML = "";
 
 
     photos.forEach(photo => {
@@ -430,15 +580,34 @@ function createResult() {
             );
 
 
-        img.src = photo;
+        img.src =
+            photo;
+
+        img.alt =
+            "Photobox memory";
 
 
-        grid.appendChild(img);
+        resultGrid.appendChild(
+            img
+        );
 
     });
 
 
-    // NAMA
+    // TITLE
+
+    document.getElementById(
+        "resultTitle"
+    ).textContent =
+
+        document.getElementById(
+            "title"
+        ).value.trim() ||
+
+        "Our Little Moments";
+
+
+    // NAMES
 
     const name1 =
         document.getElementById(
@@ -452,8 +621,7 @@ function createResult() {
         ).value.trim();
 
 
-    let names =
-        "Our Little Moments";
+    let names = "You × Me";
 
 
     if (name1 && name2) {
@@ -461,85 +629,60 @@ function createResult() {
         names =
             `${name1} × ${name2}`;
 
-    }
-
-    else if (name1) {
+    } else if (name1) {
 
         names = name1;
 
-    }
-
-    else if (name2) {
+    } else if (name2) {
 
         names = name2;
 
     }
 
 
-    document
-        .getElementById(
-            "resultNames"
-        ).innerText =
+    document.getElementById(
+        "resultNames"
+    ).textContent =
         names;
-
-
-    // TITLE
-
-    document
-        .getElementById(
-            "resultTitle"
-        ).innerText =
-
-        document
-            .getElementById(
-                "title"
-            ).value ||
-
-        "Our Little Moments";
 
 
     // MESSAGE
 
-    document
-        .getElementById(
-            "resultMessage"
-        ).innerText =
+    document.getElementById(
+        "resultMessage"
+    ).textContent =
 
-        document
-            .getElementById(
-                "message"
-            ).value ||
+        document.getElementById(
+            "message"
+        ).value.trim() ||
 
-        "A little moment with you ❤️";
+        "Every moment with you is special ♡";
 
 
     // DATE
 
     const dateValue =
-        document
-            .getElementById(
-                "date"
-            ).value;
+        document.getElementById(
+            "date"
+        ).value;
 
 
     if (dateValue) {
 
         const date =
             new Date(
-                dateValue +
-                "T00:00:00"
+                `${dateValue}T00:00:00`
             );
 
 
-        document
-            .getElementById(
-                "resultDate"
-            ).innerText =
+        document.getElementById(
+            "resultDate"
+        ).textContent =
 
             date.toLocaleDateString(
                 "id-ID",
                 {
-                    day: "2-digit",
+                    day: "numeric",
                     month: "long",
                     year: "numeric"
                 }
@@ -552,107 +695,648 @@ function createResult() {
 
     const frame =
         document.getElementById(
-            "photoFrame"
-        );
-
-
-    frame.className =
-        "photo-frame " +
-
-        document.getElementById(
             "frame"
         ).value;
 
 
-    // SHOW
+    resultFrame.className =
+        `result-frame ${frame}`;
 
-    document
-        .getElementById(
-            "result"
-        ).style.display =
+
+    resultSection.style.display =
         "block";
-
-
-    statusText.innerText =
-        "🎉 Photobox selesai! ❤️";
 
 
     setTimeout(() => {
 
-        document
-            .getElementById(
-                "result"
-            )
-            .scrollIntoView({
-                behavior: "smooth"
-            });
+        resultSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
 
-    }, 300);
+    }, 200);
 
 }
 
 
-// ================================
-// RESET
-// ================================
+/* =========================================
+   DOWNLOAD
+========================================= */
 
-document
-    .getElementById("reset")
-    .addEventListener(
-        "click",
-        reset
+downloadButton.addEventListener(
+    "click",
+    downloadResult
+);
+
+
+async function downloadResult() {
+
+    if (!photos.length) {
+
+        alert(
+            "Belum ada hasil foto."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        setStatus(
+            "⏳ Menyiapkan foto..."
+        );
+
+
+        const blob =
+            await createFinalImage();
+
+
+        const url =
+            URL.createObjectURL(blob);
+
+
+        const link =
+            document.createElement("a");
+
+
+        link.href = url;
+
+
+        const name1 =
+            document
+                .getElementById("name1")
+                .value
+                .trim()
+                .replace(
+                    /[^a-zA-Z0-9-_]/g,
+                    ""
+                );
+
+
+        const name2 =
+            document
+                .getElementById("name2")
+                .value
+                .trim()
+                .replace(
+                    /[^a-zA-Z0-9-_]/g,
+                    ""
+                );
+
+
+        const filename =
+            name1 && name2
+                ? `LoveBox-${name1}-${name2}.jpg`
+                : "LoveBox-Photobox.jpg";
+
+
+        link.download =
+            filename;
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        link.click();
+
+
+        link.remove();
+
+
+        setTimeout(() => {
+
+            URL.revokeObjectURL(
+                url
+            );
+
+        }, 1000);
+
+
+        setStatus(
+            "💾 Foto berhasil disimpan sebagai JPG!"
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+            "❌ Gagal membuat file JPG."
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   CREATE FINAL CANVAS
+========================================= */
+
+async function createFinalImage() {
+
+    const layout =
+        document.getElementById(
+            "layout"
+        ).value;
+
+
+    const [columns, rows] =
+        layout
+            .split("x")
+            .map(Number);
+
+
+    const WIDTH =
+        1600;
+
+
+    const PADDING =
+        90;
+
+
+    const HEADER =
+        230;
+
+
+    const FOOTER =
+        190;
+
+
+    const GAP =
+        8;
+
+
+    const cellWidth =
+        (
+            WIDTH -
+            PADDING * 2 -
+            GAP * (columns - 1)
+        ) / columns;
+
+
+    const cellHeight =
+        cellWidth;
+
+
+    const gridHeight =
+        cellHeight * rows +
+        GAP * (rows - 1);
+
+
+    const HEIGHT =
+        PADDING +
+        HEADER +
+        gridHeight +
+        FOOTER +
+        PADDING;
+
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+
+    canvas.width =
+        WIDTH;
+
+    canvas.height =
+        HEIGHT;
+
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    // BACKGROUND
+
+    ctx.fillStyle =
+        getFrameColor();
+
+
+    ctx.fillRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
     );
 
 
-function reset() {
-
-    photos = [];
-
-
-    document
-        .getElementById("result")
-        .style.display =
-        "none";
+    const textColor =
+        getTextColor();
 
 
-    statusText.innerText =
-        "Siap bikin kenangan lagi 💗";
-
-}
+    ctx.fillStyle =
+        textColor;
 
 
-// ================================
-// RETAKE
-// ================================
-
-document
-    .getElementById("retake")
-    .addEventListener(
-        "click",
-        () => {
-
-            document
-                .getElementById(
-                    "result"
-                ).style.display =
-                "none";
+    ctx.textAlign =
+        "center";
 
 
-            window.scrollTo({
+    // TITLE
 
-                top: 0,
+    const title =
+        document.getElementById(
+            "title"
+        ).value.trim();
 
-                behavior: "smooth"
 
-            });
+    ctx.font =
+        "bold 56px Georgia";
+
+
+    ctx.fillText(
+        title || "Our Little Moments",
+        WIDTH / 2,
+        85
+    );
+
+
+    // NAMES
+
+    const name1 =
+        document.getElementById(
+            "name1"
+        ).value.trim();
+
+
+    const name2 =
+        document.getElementById(
+            "name2"
+        ).value.trim();
+
+
+    let names = "You × Me";
+
+
+    if (name1 && name2) {
+
+        names =
+            `${name1} × ${name2}`;
+
+    } else if (name1) {
+
+        names = name1;
+
+    } else if (name2) {
+
+        names = name2;
+
+    }
+
+
+    ctx.font =
+        "30px Arial";
+
+
+    ctx.fillText(
+        names,
+        WIDTH / 2,
+        140
+    );
+
+
+    // IMAGES
+
+    const images =
+        await Promise.all(
+            photos.map(loadImage)
+        );
+
+
+    images.forEach(
+        (img, index) => {
+
+            const column =
+                index % columns;
+
+
+            const row =
+                Math.floor(
+                    index / columns
+                );
+
+
+            const x =
+                PADDING +
+                column *
+                (cellWidth + GAP);
+
+
+            const y =
+                PADDING +
+                HEADER +
+                row *
+                (cellHeight + GAP);
+
+
+            drawCrop(
+                ctx,
+                img,
+                x,
+                y,
+                cellWidth,
+                cellHeight
+            );
 
         }
     );
 
 
-// ================================
-// UTILITY
-// ================================
+    // MESSAGE
+
+    const message =
+        document.getElementById(
+            "message"
+        ).value.trim();
+
+
+    ctx.font =
+        "italic 32px Georgia";
+
+
+    ctx.fillText(
+        message ||
+        "Every moment with you is special ♡",
+        WIDTH / 2,
+        HEIGHT - 95
+    );
+
+
+    // DATE
+
+    const dateValue =
+        document.getElementById(
+            "date"
+        ).value;
+
+
+    if (dateValue) {
+
+        const date =
+            new Date(
+                `${dateValue}T00:00:00`
+            );
+
+
+        ctx.font =
+            "21px Arial";
+
+
+        ctx.fillText(
+
+            date.toLocaleDateString(
+                "id-ID",
+                {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            ),
+
+            WIDTH / 2,
+            HEIGHT - 50
+
+        );
+
+    }
+
+
+    // DECORATIVE HEARTS
+
+    ctx.font =
+        "48px Arial";
+
+
+    ctx.fillText(
+        "♥",
+        50,
+        75
+    );
+
+
+    ctx.fillText(
+        "♥",
+        WIDTH - 50,
+        HEIGHT - 45
+    );
+
+
+    return new Promise(
+        resolve => {
+
+            canvas.toBlob(
+                blob =>
+                    resolve(blob),
+                "image/jpeg",
+                .95
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   IMAGE HELPERS
+========================================= */
+
+function loadImage(src) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const img =
+                new Image();
+
+
+            img.onload =
+                () => resolve(img);
+
+
+            img.onerror =
+                () => reject(
+                    new Error(
+                        "Foto gagal dimuat."
+                    )
+                );
+
+
+            img.src = src;
+
+        }
+    );
+
+}
+
+
+function drawCrop(
+    ctx,
+    img,
+    x,
+    y,
+    width,
+    height
+) {
+
+    const imageRatio =
+        img.width / img.height;
+
+
+    const targetRatio =
+        width / height;
+
+
+    let sourceWidth =
+        img.width;
+
+
+    let sourceHeight =
+        img.height;
+
+
+    let sourceX = 0;
+
+    let sourceY = 0;
+
+
+    if (imageRatio > targetRatio) {
+
+        sourceWidth =
+            img.height *
+            targetRatio;
+
+
+        sourceX =
+            (img.width -
+                sourceWidth) / 2;
+
+    }
+
+    else {
+
+        sourceHeight =
+            img.width /
+            targetRatio;
+
+
+        sourceY =
+            (img.height -
+                sourceHeight) / 2;
+
+    }
+
+
+    ctx.drawImage(
+
+        img,
+
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+
+        x,
+        y,
+        width,
+        height
+
+    );
+
+}
+
+
+/* =========================================
+   FRAME COLORS
+========================================= */
+
+function getFrameColor() {
+
+    switch (
+        document
+            .getElementById("frame")
+            .value
+    ) {
+
+        case "white":
+            return "#ffffff";
+
+        case "purple":
+            return "#eadcff";
+
+        case "blue":
+            return "#dff4ff";
+
+        case "red":
+            return "#ffd5dd";
+
+        case "black":
+            return "#171717";
+
+        default:
+            return "#ffdce8";
+
+    }
+
+}
+
+
+function getTextColor() {
+
+    return document
+        .getElementById("frame")
+        .value === "black"
+
+        ? "#ffffff"
+
+        : "#542533";
+
+}
+
+
+/* =========================================
+   RETAKE
+========================================= */
+
+retakeButton.addEventListener(
+    "click",
+    () => {
+
+        photos = [];
+
+
+        resultGrid.innerHTML = "";
+
+
+        resultSection.style.display =
+            "none";
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+
+        setStatus(
+            "📸 Siap mengambil foto lagi!"
+        );
+
+    }
+);
+
+
+/* =========================================
+   UTILITY
+========================================= */
 
 function sleep(ms) {
 
@@ -665,3 +1349,33 @@ function sleep(ms) {
     );
 
 }
+
+
+function setStatus(message) {
+
+    statusText.textContent =
+        message;
+
+}
+
+
+/* =========================================
+   CLEAN CAMERA WHEN LEAVING
+========================================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        if (stream) {
+
+            stream
+                .getTracks()
+                .forEach(track =>
+                    track.stop()
+                );
+
+        }
+
+    }
+);
